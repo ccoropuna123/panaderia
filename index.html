@@ -595,6 +595,21 @@
       font-size: 0.92rem;
     }
 
+    .sold-input {
+      width: 78px;
+      padding: 6px 8px;
+      border: 1.5px solid #8c7b6b;
+      border-radius: 6px;
+      font-weight: 700;
+      text-align: center;
+      background: #fffdf9;
+    }
+
+    .sold-input:focus {
+      outline: none;
+      border-color: var(--green-btn);
+    }
+
     .badge {
       display: inline-block;
       padding: 4px 12px;
@@ -822,7 +837,7 @@
               <button id="btn-list" class="toggle-btn active" onclick="setViewMode('list')">☰ Lista</button>
             </div>
             <button class="btn btn-blue" onclick="openProductForm(null)">+ Agregar Producto</button>
-            <button class="btn-outline-blue" onclick="showToast('Presiona - al vender: resta stock y suma a Vendidas. Presiona + para ingresar stock del turno.')" title="Ayuda">?</button>
+            <button class="btn-outline-blue" onclick="showToast('Usa + para ingresos del turno y - para restas rápidas. Al cerrar el turno, digita las unidades vendidas en Resumen de Cierre.')" title="Ayuda">?</button>
           </div>
         </div>
 
@@ -941,7 +956,10 @@
       <!-- ================= 6. RESUMEN DE CIERRE ================= -->
       <section id="view-cierre" class="hidden">
         <div class="section-header">
-          <h2 id="closing-title" style="font-size:1.4rem; font-weight:800;">Resumen de Cierre - Turno Mañana</h2>
+          <div>
+            <h2 id="closing-title" style="font-size:1.4rem; font-weight:800;">Resumen de Cierre - Turno Mañana</h2>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin-top:4px;">Escribe las unidades vendidas del turno en cada fila para calcular venta y stock final al instante.</p>
+          </div>
         </div>
 
         <div class="meta-strip">
@@ -972,7 +990,7 @@
                 <th>Ingreso Turno</th>
                 <th>Ingreso Total</th>
                 <th>Dev. / Don.</th>
-                <th>Vendidas</th>
+                <th>Vendidas (und.)</th>
                 <th>Venta Total</th>
                 <th>Inventario Final</th>
               </tr>
@@ -982,6 +1000,7 @@
         </div>
 
         <div class="bottom-actions">
+          <button class="btn btn-green" onclick="applyClosingStock()">Aplicar Stock Final al Inventario</button>
           <button class="btn btn-blue" onclick="window.print()">Imprimir / Guardar PDF</button>
           <button class="btn-outline-dark" onclick="navigateTo('inventario')">Volver al Inventario</button>
         </div>
@@ -1036,7 +1055,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    const STORAGE_KEY = "panaderia_la_lucha_state_v2";
+    const STORAGE_KEY = "panaderia_la_lucha_state_v3";
 
     const DEFAULT_PRODUCTS = [
       { id: 1, name: "Café Americano", category: "Bebidas", price: 4.00, initialStock: 25, addedStock: 0, incidentQty: 0, stock: 25, sold: 0, icon: "☕" },
@@ -1233,7 +1252,7 @@
             <div class="product-controls">
               <span class="price-tag">S/. ${Number(p.price).toFixed(2)}</span>
               <div class="stepper">
-                <button class="step-btn step-minus" onclick="changeStock(${p.id}, -1)" title="Restar por venta">-</button>
+                <button class="step-btn step-minus" onclick="changeStock(${p.id}, -1)" title="Restar 1">-</button>
                 <div class="stock-box">
                   <span class="stock-num">${p.stock}</span>
                   <span class="stock-label">en stock</span>
@@ -1256,16 +1275,9 @@
       }
 
       prod.stock += delta;
-
       if (delta > 0) {
-        // Si antes había vendido en este turno, primero revierte venta; si no, cuenta como ingreso del turno
-        if ((prod.sold || 0) > 0) {
-          prod.sold -= 1;
-        } else {
-          prod.addedStock = (prod.addedStock || 0) + 1;
-        }
+        prod.addedStock = (prod.addedStock || 0) + delta;
       } else {
-        // Al vender (-), resta del stock y suma a unidades vendidas
         prod.sold = (prod.sold || 0) + 1;
       }
 
@@ -1286,7 +1298,7 @@
 
     function goToClosing() {
       saveState();
-      showToast("Resumen de cierre actualizado.");
+      showToast("Resumen de cierre listo para ingresar ventas.");
       navigateTo("cierre");
     }
 
@@ -1359,8 +1371,6 @@
         if (prod) {
           if (stock > prod.stock) {
             prod.addedStock = (prod.addedStock || 0) + (stock - prod.stock);
-          } else if (stock < prod.stock) {
-            prod.sold = (prod.sold || 0) + (prod.stock - stock);
           }
           prod.name = name;
           prod.category = category;
@@ -1468,6 +1478,36 @@
       showToast(`${incType} registrada.`);
     }
 
+    function updateSoldQty(id, rawValue) {
+      const prod = products.find((p) => p.id === id);
+      if (!prod) return;
+
+      const initStock = prod.initialStock || 0;
+      const added = prod.addedStock || 0;
+      const totalIn = initStock + added;
+      const incQty = prod.incidentQty || 0;
+      const maxSellable = Math.max(0, totalIn - incQty);
+
+      let soldQty = parseInt(rawValue, 10);
+      if (isNaN(soldQty) || soldQty < 0) soldQty = 0;
+      if (soldQty > maxSellable) {
+        soldQty = maxSellable;
+        showToast(`Máximo vendible para ${prod.name}: ${maxSellable} und.`);
+      }
+
+      prod.sold = soldQty;
+      prod.stock = Math.max(0, totalIn - incQty - soldQty);
+
+      saveState();
+      renderClosing();
+    }
+
+    function applyClosingStock() {
+      saveState();
+      showToast("Ventas y stock final guardados.");
+      navigateTo("inventario");
+    }
+
     function renderClosing() {
       const tbody = document.getElementById("closing-tbody");
       let grandTotal = 0;
@@ -1479,6 +1519,9 @@
         const totalIn = initStock + added;
         const incQty = p.incidentQty || 0;
         const soldQty = p.sold || 0;
+        const finalStock = Math.max(0, totalIn - incQty - soldQty);
+        p.stock = finalStock;
+
         const saleTotal = soldQty * Number(p.price || 0);
         grandTotal += saleTotal;
         totalIncidents += incQty;
@@ -1490,13 +1533,22 @@
             <td>${added} und.</td>
             <td><strong>${totalIn} und.</strong></td>
             <td>${incQty} und.</td>
-            <td>${soldQty} und. × S/. ${Number(p.price).toFixed(2)}</td>
+            <td>
+              <input
+                type="number"
+                min="0"
+                class="sold-input"
+                value="${soldQty}"
+                onchange="updateSoldQty(${p.id}, this.value)"
+              />
+            </td>
             <td class="total-money">S/. ${saleTotal.toFixed(2)}</td>
-            <td><strong>${p.stock} und.</strong></td>
+            <td><strong>${finalStock} und.</strong></td>
           </tr>
         `;
       }).join("");
 
+      saveState();
       document.getElementById("closing-grand-total").textContent = `S/. ${grandTotal.toFixed(2)}`;
       document.getElementById("closing-incidents-summary").textContent = `${totalIncidents} und.`;
       document.getElementById("closing-user").textContent = currentUser;
