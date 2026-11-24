@@ -203,6 +203,9 @@
       border: 1.5px solid var(--blue-btn);
       padding: 7px 14px;
       font-size: 0.88rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
     }
 
     .btn-outline-blue:hover {
@@ -288,7 +291,7 @@
 
     /* ================= CONTENEDOR PRINCIPAL ================= */
     .container {
-      max-width: 1140px;
+      max-width: 1180px;
       margin: 24px auto;
       padding: 0 20px 44px;
     }
@@ -575,7 +578,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 760px;
+      min-width: 820px;
     }
 
     thead th {
@@ -819,7 +822,7 @@
               <button id="btn-list" class="toggle-btn active" onclick="setViewMode('list')">☰ Lista</button>
             </div>
             <button class="btn btn-blue" onclick="openProductForm(null)">+ Agregar Producto</button>
-            <button class="btn-outline-blue" onclick="showToast('Usa - para registrar venta, + para sumar ingreso al turno y Editar para modificar datos.')" title="Ayuda">?</button>
+            <button class="btn-outline-blue" onclick="showToast('Presiona - al vender: resta stock y suma a Vendidas. Presiona + para ingresar stock del turno.')" title="Ayuda">?</button>
           </div>
         </div>
 
@@ -967,6 +970,7 @@
                 <th>Producto</th>
                 <th>Inventario Inicial</th>
                 <th>Ingreso Turno</th>
+                <th>Ingreso Total</th>
                 <th>Dev. / Don.</th>
                 <th>Vendidas</th>
                 <th>Venta Total</th>
@@ -1032,15 +1036,15 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    const STORAGE_KEY = "panaderia_la_lucha_state_v1";
+    const STORAGE_KEY = "panaderia_la_lucha_state_v2";
 
     const DEFAULT_PRODUCTS = [
-      { id: 1, name: "Café Americano", category: "Bebidas", price: 4.00, initialStock: 25, addedStock: 0, incidentQty: 0, stock: 25, sold: 6, icon: "☕" },
-      { id: 2, name: "Croissant", category: "Panes", price: 2.50, initialStock: 20, addedStock: 12, incidentQty: 0, stock: 32, sold: 8, icon: "🥐" },
-      { id: 3, name: "Empanada de Carne", category: "Panes", price: 3.50, initialStock: 25, addedStock: 15, incidentQty: 0, stock: 40, sold: 11, icon: "🥐" },
-      { id: 4, name: "Empanada de Pollo", category: "Panes", price: 3.50, initialStock: 20, addedStock: 8, incidentQty: 0, stock: 28, sold: 7, icon: "🥐" },
-      { id: 5, name: "Jugo de Naranja", category: "Bebidas", price: 6.00, initialStock: 18, addedStock: 0, incidentQty: 0, stock: 18, sold: 5, icon: "🍹" },
-      { id: 6, name: "Torta de Chocolate", category: "Tortas", price: 45.00, initialStock: 6, addedStock: 2, incidentQty: 0, stock: 8, sold: 2, icon: "🎂" }
+      { id: 1, name: "Café Americano", category: "Bebidas", price: 4.00, initialStock: 25, addedStock: 0, incidentQty: 0, stock: 25, sold: 0, icon: "☕" },
+      { id: 2, name: "Croissant", category: "Panes", price: 2.50, initialStock: 20, addedStock: 12, incidentQty: 4, stock: 28, sold: 0, icon: "🥐" },
+      { id: 3, name: "Empanada de Carne", category: "Panes", price: 3.50, initialStock: 25, addedStock: 15, incidentQty: 2, stock: 38, sold: 0, icon: "🥐" },
+      { id: 4, name: "Empanada de Pollo", category: "Panes", price: 3.50, initialStock: 20, addedStock: 8, incidentQty: 0, stock: 28, sold: 0, icon: "🥐" },
+      { id: 5, name: "Jugo de Naranja", category: "Bebidas", price: 6.00, initialStock: 18, addedStock: 0, incidentQty: 0, stock: 18, sold: 0, icon: "🍹" },
+      { id: 6, name: "Torta de Chocolate", category: "Tortas", price: 45.00, initialStock: 6, addedStock: 2, incidentQty: 1, stock: 7, sold: 0, icon: "🎂" }
     ];
 
     const DEFAULT_INCIDENTS = [
@@ -1067,9 +1071,7 @@
           products,
           incidents
         }));
-      } catch (err) {
-        // Si el navegador bloquea storage o la imagen es muy pesada, no rompe la app
-      }
+      } catch (err) {}
     }
 
     function loadState() {
@@ -1231,12 +1233,12 @@
             <div class="product-controls">
               <span class="price-tag">S/. ${Number(p.price).toFixed(2)}</span>
               <div class="stepper">
-                <button class="step-btn step-minus" onclick="changeStock(${p.id}, -1)" title="Registrar 1 venta">-</button>
+                <button class="step-btn step-minus" onclick="changeStock(${p.id}, -1)" title="Restar por venta">-</button>
                 <div class="stock-box">
                   <span class="stock-num">${p.stock}</span>
                   <span class="stock-label">en stock</span>
                 </div>
-                <button class="step-btn step-plus" onclick="changeStock(${p.id}, 1)" title="Sumar 1 ingreso al turno">+</button>
+                <button class="step-btn step-plus" onclick="changeStock(${p.id}, 1)" title="Sumar ingreso del turno">+</button>
               </div>
               <button class="btn-outline-blue" onclick="openProductForm(${p.id})">✏️ Editar</button>
             </div>
@@ -1252,12 +1254,21 @@
         showToast("No hay stock disponible para restar.");
         return;
       }
+
       prod.stock += delta;
+
       if (delta > 0) {
-        prod.addedStock = (prod.addedStock || 0) + delta;
+        // Si antes había vendido en este turno, primero revierte venta; si no, cuenta como ingreso del turno
+        if ((prod.sold || 0) > 0) {
+          prod.sold -= 1;
+        } else {
+          prod.addedStock = (prod.addedStock || 0) + 1;
+        }
       } else {
+        // Al vender (-), resta del stock y suma a unidades vendidas
         prod.sold = (prod.sold || 0) + 1;
       }
+
       saveState();
       renderInventory();
     }
@@ -1346,6 +1357,11 @@
       if (idVal) {
         const prod = products.find((p) => p.id === parseInt(idVal, 10));
         if (prod) {
+          if (stock > prod.stock) {
+            prod.addedStock = (prod.addedStock || 0) + (stock - prod.stock);
+          } else if (stock < prod.stock) {
+            prod.sold = (prod.sold || 0) + (prod.stock - stock);
+          }
           prod.name = name;
           prod.category = category;
           prod.price = price;
@@ -1458,6 +1474,9 @@
       let totalIncidents = 0;
 
       tbody.innerHTML = products.map((p) => {
+        const initStock = p.initialStock || 0;
+        const added = p.addedStock || 0;
+        const totalIn = initStock + added;
         const incQty = p.incidentQty || 0;
         const soldQty = p.sold || 0;
         const saleTotal = soldQty * Number(p.price || 0);
@@ -1467,8 +1486,9 @@
         return `
           <tr>
             <td><strong>${p.name}</strong></td>
-            <td>${p.initialStock} und.</td>
-            <td>${p.addedStock || 0} und.</td>
+            <td>${initStock} und.</td>
+            <td>${added} und.</td>
+            <td><strong>${totalIn} und.</strong></td>
             <td>${incQty} und.</td>
             <td>${soldQty} und. × S/. ${Number(p.price).toFixed(2)}</td>
             <td class="total-money">S/. ${saleTotal.toFixed(2)}</td>
