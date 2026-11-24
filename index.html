@@ -215,6 +215,13 @@
       border: 1.5px solid var(--brown-dark);
       padding: 8px 14px;
       font-size: 0.88rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn-outline-dark:hover {
+      background: var(--bg-soft);
     }
 
     /* ================= NAVBAR SUPERIOR ================= */
@@ -252,6 +259,7 @@
       font-size: 0.85rem;
       padding: 5px 12px;
       border-radius: 999px;
+      cursor: pointer;
     }
 
     .nav-links {
@@ -280,9 +288,9 @@
 
     /* ================= CONTENEDOR PRINCIPAL ================= */
     .container {
-      max-width: 1120px;
+      max-width: 1140px;
       margin: 24px auto;
-      padding: 0 20px 40px;
+      padding: 0 20px 44px;
     }
 
     /* ================= VISTA 2: INVENTARIO PRINCIPAL ================= */
@@ -403,6 +411,11 @@
       color: var(--text-muted);
     }
 
+    .low-stock {
+      color: var(--red-btn);
+      font-weight: 700;
+    }
+
     .product-controls {
       display: flex;
       align-items: center;
@@ -461,7 +474,8 @@
     .bottom-actions {
       display: flex;
       justify-content: center;
-      gap: 16px;
+      align-items: center;
+      gap: 14px;
       margin-top: 24px;
       flex-wrap: wrap;
     }
@@ -561,7 +575,7 @@
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 680px;
+      min-width: 760px;
     }
 
     thead th {
@@ -569,7 +583,7 @@
       color: #fff;
       text-align: left;
       padding: 13px 16px;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
     }
 
     tbody td {
@@ -655,7 +669,7 @@
       border-radius: var(--radius);
       padding: 16px 20px;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-bottom: 18px;
     }
@@ -690,7 +704,13 @@
       z-index: 100;
     }
 
-    @media (max-width: 680px) {
+    @media (max-width: 760px) {
+      .grid-2, .meta-strip {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 520px) {
       .grid-2, .meta-strip {
         grid-template-columns: 1fr;
       }
@@ -712,7 +732,7 @@
   <section id="view-auth" class="auth-wrapper">
     <div class="auth-card">
       <h1 class="auth-title">Panadería La Lucha</h1>
-      <p class="auth-subtitle">Bienvenido al control de la panadería</p>
+      <p class="auth-subtitle">Control de inventario y cierre de turno</p>
 
       <div class="auth-tabs">
         <button id="tab-login" class="tab-btn active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
@@ -769,7 +789,7 @@
     <header class="navbar">
       <div class="brand-group">
         <span class="brand-name">Panadería La Lucha</span>
-        <span class="shift-badge" id="shift-badge" onclick="cycleShift()" style="cursor:pointer" title="Clic para cambiar turno">☀️ Turno Mañana</span>
+        <span class="shift-badge" id="shift-badge" onclick="cycleShift()" title="Clic para cambiar turno">☀️ Turno Mañana</span>
       </div>
       <nav class="nav-links">
         <button id="nav-inventario" class="nav-item active" onclick="navigateTo('inventario')">Inventario Principal</button>
@@ -795,11 +815,11 @@
 
           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <div class="view-toggle">
-              <button id="btn-grid" class="toggle-btn" onclick="setViewMode('grid')">⊞ Vista de Cuadrícula</button>
-              <button id="btn-list" class="toggle-btn active" onclick="setViewMode('list')">☰ Vista de Lista</button>
+              <button id="btn-grid" class="toggle-btn" onclick="setViewMode('grid')">⊞ Cuadrícula</button>
+              <button id="btn-list" class="toggle-btn active" onclick="setViewMode('list')">☰ Lista</button>
             </div>
-            <button class="btn btn-blue" onclick="openProductForm(null)">+ Agregar Nuevo Producto</button>
-            <button class="btn-outline-blue" onclick="showToast('Usa - / + para ajustar stock o Editar para modificar datos.')" title="Ayuda">?</button>
+            <button class="btn btn-blue" onclick="openProductForm(null)">+ Agregar Producto</button>
+            <button class="btn-outline-blue" onclick="showToast('Usa - para registrar venta, + para sumar ingreso al turno y Editar para modificar datos.')" title="Ayuda">?</button>
           </div>
         </div>
 
@@ -807,7 +827,8 @@
 
         <div class="bottom-actions">
           <button class="btn btn-blue" onclick="saveInitialInventory()">Guardar Inventario Inicial</button>
-          <button class="btn btn-green" onclick="goToClosing()">Guardar Cierre de Turno</button>
+          <button class="btn btn-green" onclick="goToClosing()">Ir al Resumen de Cierre</button>
+          <button class="btn-outline-dark" onclick="resetDemoData()">Reiniciar demo</button>
         </div>
       </section>
 
@@ -840,7 +861,7 @@
                 <input id="prod-price" type="number" step="0.10" min="0" class="form-control" placeholder="0.00" required />
               </div>
               <div class="form-group">
-                <label for="prod-stock">Cantidad Inicial</label>
+                <label for="prod-stock">Cantidad en Stock</label>
                 <div class="stepper" style="margin-top:4px;">
                   <button type="button" class="step-btn step-minus" onclick="adjustFormStock(-1)">-</button>
                   <input id="prod-stock" type="number" min="0" class="form-control" style="width:84px; text-align:center; font-weight:700;" value="0" required />
@@ -893,7 +914,7 @@
         <div class="section-header">
           <div>
             <h2 style="font-size:1.4rem; font-weight:800;">Historial de Devoluciones y Donaciones</h2>
-            <p style="color:var(--text-muted); font-size:0.9rem; margin-top:4px;">🕒 Fecha: 17/11/2026</p>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-top:4px;">🕒 Registro de incidencias del mostrador</p>
           </div>
           <button class="btn btn-green" onclick="openIncidenceModal()">+ Registrar Nueva Incidencia</button>
         </div>
@@ -926,12 +947,16 @@
             <div class="meta-value" id="closing-user">Margarita (Vendedora)</div>
           </div>
           <div>
-            <div class="meta-label">Fecha</div>
-            <div class="meta-value">17/11/2026</div>
-          </div>
-          <div>
             <div class="meta-label">Tienda</div>
             <div class="meta-value">Panadería La Lucha</div>
+          </div>
+          <div>
+            <div class="meta-label">Incidencias (Dev. / Don.)</div>
+            <div class="meta-value" id="closing-incidents-summary">0 und.</div>
+          </div>
+          <div>
+            <div class="meta-label">Venta total del turno</div>
+            <div class="meta-value total-money" id="closing-grand-total">S/. 0.00</div>
           </div>
         </div>
 
@@ -941,9 +966,9 @@
               <tr>
                 <th>Producto</th>
                 <th>Inventario Inicial</th>
-                <th>Ingreso de Productos (Turno)</th>
-                <th>Total (Inicial + Turno)</th>
-                <th>Venta Especificada</th>
+                <th>Ingreso Turno</th>
+                <th>Dev. / Don.</th>
+                <th>Vendidas</th>
                 <th>Venta Total</th>
                 <th>Inventario Final</th>
               </tr>
@@ -953,8 +978,8 @@
         </div>
 
         <div class="bottom-actions">
-          <button class="btn btn-blue" onclick="window.print()">Imprimir / Exportar Reporte</button>
-          <button class="btn-outline-dark" onclick="logout()">Cerrar Sesión</button>
+          <button class="btn btn-blue" onclick="window.print()">Imprimir / Guardar PDF</button>
+          <button class="btn-outline-dark" onclick="navigateTo('inventario')">Volver al Inventario</button>
         </div>
       </section>
 
@@ -1007,6 +1032,23 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
+    const STORAGE_KEY = "panaderia_la_lucha_state_v1";
+
+    const DEFAULT_PRODUCTS = [
+      { id: 1, name: "Café Americano", category: "Bebidas", price: 4.00, initialStock: 25, addedStock: 0, incidentQty: 0, stock: 25, sold: 6, icon: "☕" },
+      { id: 2, name: "Croissant", category: "Panes", price: 2.50, initialStock: 20, addedStock: 12, incidentQty: 0, stock: 32, sold: 8, icon: "🥐" },
+      { id: 3, name: "Empanada de Carne", category: "Panes", price: 3.50, initialStock: 25, addedStock: 15, incidentQty: 0, stock: 40, sold: 11, icon: "🥐" },
+      { id: 4, name: "Empanada de Pollo", category: "Panes", price: 3.50, initialStock: 20, addedStock: 8, incidentQty: 0, stock: 28, sold: 7, icon: "🥐" },
+      { id: 5, name: "Jugo de Naranja", category: "Bebidas", price: 6.00, initialStock: 18, addedStock: 0, incidentQty: 0, stock: 18, sold: 5, icon: "🍹" },
+      { id: 6, name: "Torta de Chocolate", category: "Tortas", price: 45.00, initialStock: 6, addedStock: 2, incidentQty: 0, stock: 8, sold: 2, icon: "🎂" }
+    ];
+
+    const DEFAULT_INCIDENTS = [
+      { date: "17/11/2026 15:42", product: "Croissant", type: "Donación", qty: 4, desc: "Entregado al comedor del barrio" },
+      { date: "17/11/2026 13:10", product: "Torta de Chocolate", type: "Devolución", qty: 1, desc: "Cliente la pidió con otro relleno" },
+      { date: "17/11/2026 11:25", product: "Empanada de Carne", type: "Devolución", qty: 2, desc: "Llegaron frías del reparto" }
+    ];
+
     let currentUser = "Margarita (Vendedora)";
     let currentShift = "Turno Mañana";
     let selectedCategory = "Todos";
@@ -1014,23 +1056,53 @@
     let selectedEmoji = "🥖";
     let customImageData = null;
     let incType = "Devolución";
+    let products = [];
+    let incidents = [];
 
-    let products = [
-      { id: 1, name: "Café Americano", category: "Bebidas", price: 4.00, initialStock: 25, addedStock: 0, stock: 25, sold: 6, icon: "☕" },
-      { id: 2, name: "Croissant", category: "Panes", price: 2.50, initialStock: 20, addedStock: 12, stock: 32, sold: 8, icon: "🥐" },
-      { id: 3, name: "Empanada de Carne", category: "Panes", price: 3.50, initialStock: 25, addedStock: 15, stock: 40, sold: 11, icon: "🥐" },
-      { id: 4, name: "Empanada de Pollo", category: "Panes", price: 3.50, initialStock: 20, addedStock: 8, stock: 28, sold: 7, icon: "🥐" },
-      { id: 5, name: "Jugo de Naranja", category: "Bebidas", price: 6.00, initialStock: 18, addedStock: 0, stock: 18, sold: 5, icon: "🍹" },
-      { id: 6, name: "Torta de Chocolate", category: "Tortas", price: 45.00, initialStock: 6, addedStock: 2, stock: 8, sold: 2, icon: "🎂" }
-    ];
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          currentUser,
+          currentShift,
+          products,
+          incidents
+        }));
+      } catch (err) {
+        // Si el navegador bloquea storage o la imagen es muy pesada, no rompe la app
+      }
+    }
 
-    let incidents = [
-      { date: "17/11/2026 15:42", product: "Pan Francés", type: "Donación", qty: 12, desc: "Entregado al comedor del barrio" },
-      { date: "17/11/2026 13:10", product: "Torta de Chocolate", type: "Devolución", qty: 1, desc: "Cliente la pidió con otro relleno" },
-      { date: "17/11/2026 11:25", product: "Empanada de Carne", type: "Devolución", qty: 3, desc: "Llegaron frías del reparto" },
-      { date: "16/11/2026 18:05", product: "Croissant", type: "Donación", qty: 8, desc: "Sobrante del día para el asilo" },
-      { date: "16/11/2026 10:30", product: "Torta Tres Leches", type: "Devolución", qty: 1, desc: "Caja dañada en el transporte" }
-    ];
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+          incidents = JSON.parse(JSON.stringify(DEFAULT_INCIDENTS));
+          return;
+        }
+        const parsed = JSON.parse(raw);
+        currentUser = parsed.currentUser || "Margarita (Vendedora)";
+        currentShift = parsed.currentShift || "Turno Mañana";
+        products = Array.isArray(parsed.products) ? parsed.products : JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        incidents = Array.isArray(parsed.incidents) ? parsed.incidents : JSON.parse(JSON.stringify(DEFAULT_INCIDENTS));
+      } catch (err) {
+        products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+        incidents = JSON.parse(JSON.stringify(DEFAULT_INCIDENTS));
+      }
+    }
+
+    function resetDemoData() {
+      localStorage.removeItem(STORAGE_KEY);
+      currentUser = "Margarita (Vendedora)";
+      currentShift = "Turno Mañana";
+      products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
+      incidents = JSON.parse(JSON.stringify(DEFAULT_INCIDENTS));
+      document.getElementById("closing-user").textContent = currentUser;
+      const icon = currentShift === "Turno Mañana" ? "☀️" : "🌤️";
+      document.getElementById("shift-badge").textContent = `${icon} ${currentShift}`;
+      renderInventory();
+      showToast("Datos de demostración reiniciados.");
+    }
 
     function showToast(msg) {
       const el = document.getElementById("toast");
@@ -1055,7 +1127,8 @@
     function handleLogin(e) {
       e.preventDefault();
       const email = document.getElementById("login-email").value.trim();
-      currentUser = email ? email.split("@")[0] : "Margarita";
+      currentUser = email ? `${email.split("@")[0]} (Vendedora)` : "Margarita (Vendedora)";
+      saveState();
       enterApp();
     }
 
@@ -1064,6 +1137,7 @@
       const name = document.getElementById("reg-name").value.trim();
       const role = document.getElementById("reg-role").value;
       currentUser = `${name} (${role})`;
+      saveState();
       showToast(`Usuario registrado: ${currentUser}`);
       enterApp();
     }
@@ -1072,6 +1146,8 @@
       document.getElementById("view-auth").classList.add("hidden");
       document.getElementById("app-shell").classList.remove("hidden");
       document.getElementById("closing-user").textContent = currentUser;
+      const icon = currentShift === "Turno Mañana" ? "☀️" : "🌤️";
+      document.getElementById("shift-badge").textContent = `${icon} ${currentShift}`;
       navigateTo("inventario");
     }
 
@@ -1085,6 +1161,7 @@
       const icon = currentShift === "Turno Mañana" ? "☀️" : "🌤️";
       document.getElementById("shift-badge").textContent = `${icon} ${currentShift}`;
       document.getElementById("closing-title").textContent = `Resumen de Cierre - ${currentShift}`;
+      saveState();
       showToast(`Cambiado a ${currentShift}`);
     }
 
@@ -1139,42 +1216,49 @@
         return;
       }
 
-      container.innerHTML = filtered.map((p) => `
-        <div class="product-row">
-          <div class="product-info">
-            ${renderIcon(p)}
-            <div>
-              <div class="product-name">${p.name}</div>
-              <div class="product-cat">${p.category}</div>
-            </div>
-          </div>
-
-          <div class="product-controls">
-            <span class="price-tag">S/. ${p.price.toFixed(2)}</span>
-            <div class="stepper">
-              <button class="step-btn step-minus" onclick="changeStock(${p.id}, -1)">-</button>
-              <div class="stock-box">
-                <span class="stock-num">${p.stock}</span>
-                <span class="stock-label">en stock</span>
+      container.innerHTML = filtered.map((p) => {
+        const isLow = p.stock <= 5;
+        return `
+          <div class="product-row">
+            <div class="product-info">
+              ${renderIcon(p)}
+              <div>
+                <div class="product-name">${p.name}</div>
+                <div class="product-cat">${p.category}${isLow ? ' · <span class="low-stock">Stock bajo</span>' : ''}</div>
               </div>
-              <button class="step-btn step-plus" onclick="changeStock(${p.id}, 1)">+</button>
             </div>
-            <button class="btn-outline-blue" onclick="openProductForm(${p.id})">✏️ Editar</button>
+
+            <div class="product-controls">
+              <span class="price-tag">S/. ${Number(p.price).toFixed(2)}</span>
+              <div class="stepper">
+                <button class="step-btn step-minus" onclick="changeStock(${p.id}, -1)" title="Registrar 1 venta">-</button>
+                <div class="stock-box">
+                  <span class="stock-num">${p.stock}</span>
+                  <span class="stock-label">en stock</span>
+                </div>
+                <button class="step-btn step-plus" onclick="changeStock(${p.id}, 1)" title="Sumar 1 ingreso al turno">+</button>
+              </div>
+              <button class="btn-outline-blue" onclick="openProductForm(${p.id})">✏️ Editar</button>
+            </div>
           </div>
-        </div>
-      `).join("");
+        `;
+      }).join("");
     }
 
     function changeStock(id, delta) {
       const prod = products.find((p) => p.id === id);
       if (!prod) return;
-      if (prod.stock + delta < 0) return;
+      if (delta < 0 && prod.stock <= 0) {
+        showToast("No hay stock disponible para restar.");
+        return;
+      }
       prod.stock += delta;
       if (delta > 0) {
-        prod.addedStock += delta;
+        prod.addedStock = (prod.addedStock || 0) + delta;
       } else {
-        prod.sold += 1;
+        prod.sold = (prod.sold || 0) + 1;
       }
+      saveState();
       renderInventory();
     }
 
@@ -1182,13 +1266,16 @@
       products.forEach((p) => {
         p.initialStock = p.stock;
         p.addedStock = 0;
+        p.incidentQty = 0;
         p.sold = 0;
       });
+      saveState();
       showToast("Inventario inicial guardado para el turno.");
     }
 
     function goToClosing() {
-      showToast("Cierre de turno calculado.");
+      saveState();
+      showToast("Resumen de cierre actualizado.");
       navigateTo("cierre");
     }
 
@@ -1207,7 +1294,7 @@
       } else {
         const prod = products.find((p) => p.id === id);
         if (!prod) return;
-        document.getElementById("product-form-title").textContent = "Agregar / Editar Producto";
+        document.getElementById("product-form-title").textContent = "Editar Producto";
         document.getElementById("prod-id").value = prod.id;
         document.getElementById("prod-name").value = prod.name;
         document.getElementById("prod-category").value = prod.category;
@@ -1276,6 +1363,7 @@
           price,
           initialStock: stock,
           addedStock: 0,
+          incidentQty: 0,
           stock,
           sold: 0,
           icon: selectedEmoji,
@@ -1283,18 +1371,24 @@
         });
         showToast("Producto agregado al inventario.");
       }
+      saveState();
       navigateTo("inventario");
     }
 
     function deleteCurrentProduct() {
       const idVal = parseInt(document.getElementById("prod-id").value, 10);
       products = products.filter((p) => p.id !== idVal);
+      saveState();
       showToast("Producto eliminado.");
       navigateTo("inventario");
     }
 
     function renderIncidents() {
       const tbody = document.getElementById("incidents-tbody");
+      if (!incidents.length) {
+        tbody.innerHTML = `<tr><td colspan="5">No hay devoluciones ni donaciones registradas.</td></tr>`;
+        return;
+      }
       tbody.innerHTML = incidents.map((inc) => {
         const badgeClass = inc.type === "Donación" ? "badge-donacion" : "badge-devolucion";
         return `
@@ -1302,7 +1396,7 @@
             <td>${inc.date}</td>
             <td><strong>${inc.product}</strong></td>
             <td><span class="badge ${badgeClass}">${inc.type}</span></td>
-            <td><strong>${inc.qty}</strong></td>
+            <td><strong>${inc.qty} und.</strong></td>
             <td>${inc.desc}</td>
           </tr>
         `;
@@ -1311,8 +1405,10 @@
 
     function openIncidenceModal() {
       const select = document.getElementById("inc-product");
-      select.innerHTML = products.map((p) => `<option value="${p.name}">${p.name}</option>`).join("") +
-        `<option value="Pan Francés">Pan Francés</option><option value="Torta Tres Leches">Torta Tres Leches</option>`;
+      const names = new Set(products.map((p) => p.name));
+      names.add("Pan Francés");
+      names.add("Torta Tres Leches");
+      select.innerHTML = Array.from(names).map((n) => `<option value="${n}">${n}</option>`).join("");
       document.getElementById("inc-qty").value = 1;
       document.getElementById("inc-desc").value = "";
       setIncType("Devolución");
@@ -1347,8 +1443,10 @@
       const matchedProd = products.find((p) => p.name === product);
       if (matchedProd) {
         matchedProd.stock = Math.max(0, matchedProd.stock - qty);
+        matchedProd.incidentQty = (matchedProd.incidentQty || 0) + qty;
       }
 
+      saveState();
       closeIncidenceModal();
       renderIncidents();
       showToast(`${incType} registrada.`);
@@ -1356,22 +1454,36 @@
 
     function renderClosing() {
       const tbody = document.getElementById("closing-tbody");
+      let grandTotal = 0;
+      let totalIncidents = 0;
+
       tbody.innerHTML = products.map((p) => {
-        const totalUnits = p.initialStock + p.addedStock;
-        const saleTotal = (p.sold * p.price).toFixed(2);
+        const incQty = p.incidentQty || 0;
+        const soldQty = p.sold || 0;
+        const saleTotal = soldQty * Number(p.price || 0);
+        grandTotal += saleTotal;
+        totalIncidents += incQty;
+
         return `
           <tr>
             <td><strong>${p.name}</strong></td>
             <td>${p.initialStock} und.</td>
-            <td>${p.addedStock} und.</td>
-            <td><strong>${totalUnits} und.</strong></td>
-            <td>${p.sold} und. × S/. ${p.price.toFixed(2)}</td>
-            <td class="total-money">S/. ${saleTotal}</td>
+            <td>${p.addedStock || 0} und.</td>
+            <td>${incQty} und.</td>
+            <td>${soldQty} und. × S/. ${Number(p.price).toFixed(2)}</td>
+            <td class="total-money">S/. ${saleTotal.toFixed(2)}</td>
             <td><strong>${p.stock} und.</strong></td>
           </tr>
         `;
       }).join("");
+
+      document.getElementById("closing-grand-total").textContent = `S/. ${grandTotal.toFixed(2)}`;
+      document.getElementById("closing-incidents-summary").textContent = `${totalIncidents} und.`;
+      document.getElementById("closing-user").textContent = currentUser;
+      document.getElementById("closing-title").textContent = `Resumen de Cierre - ${currentShift}`;
     }
+
+    loadState();
   </script>
 </body>
 </html>
