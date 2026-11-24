@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panadería La Lucha - Control de Inventario</title>
+  <style>
+    :root {
+      --bg-page: #f7f3eb;
+      --bg-card: #ffffff;
+      --bg-soft: #f2ece0;
+      --brown-dark: #3b2314;
+      --brown-mid: #5c3a21;
+      --cream-badge: #f8e3a1;
+      --green-btn: #287a2e;
+      --green-hover: #1e5f23;
+      --blue-btn: #1565c0;
+      --blue-hover: #0d47a1;
+      --red-btn: #c62828;
+      --red-hover: #8e0000;
+      --gray-btn: #6c757d;
+      --border: #dfd6c7;
+      --text-main: #221811;
+      --text-muted: #665a50;
+      --shadow: 0 8px 24px rgba(59, 35, 20, 0.08);
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ================= VISTA 1: LOGIN / REGISTRO ================= */
+    .auth-wrapper {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      background: var(--bg-card);
+      width: 100%;
+      max-width: 460px;
+      padding: 36px 32px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+
+    .auth-title {
+      text-align: center;
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 24px;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      border: 1.5px solid var(--brown-dark);
+      transition: 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--brown-dark);
+      color: #ffffff;
+    }
+
+    .tab-btn:not(.active) {
+      background: #ffffff;
+      color: var(--brown-dark);
+    }
+
+    .form-heading {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-main);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 11px 13px;
+      border: 1.5px solid #8c7b6b;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      background: #fff;
+      color: var(--text-main);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--brown-dark);
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 8px;
+      padding: 11px 18px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-block {
+      width: 100%;
+    }
+
+    .btn-green {
+      background: var(--green-btn);
+      color: #fff;
+    }
+
+    .btn-green:hover {
+      background: var(--green-hover);
+    }
+
+    .btn-blue {
+      background: var(--blue-btn);
+      color: #fff;
+    }
+
+    .btn-blue:hover {
+      background: var(--blue-hover);
+    }
+
+    .btn-red {
+      background: var(--red-btn);
+      color: #fff;
+    }
+
+    .btn-red:hover {
+      background: var(--red-hover);
+    }
+
+    .btn-gray {
+      background: var(--gray-btn);
+      color: #fff;
+    }
+
+    .btn-outline-blue {
+      background: #fff;
+      color: var(--blue-btn);
+      border: 1.5px solid var(--blue-btn);
+      padding: 7px 14px;
+      font-size: 0.88rem;
+    }
+
+    .btn-outline-blue:hover {
+      background: #eef5fc;
+    }
+
+    .btn-outline-dark {
+      background: #fff;
+      color: var(--brown-dark);
+      border: 1.5px solid var(--brown-dark);
+      padding: 8px 14px;
+      font-size: 0.88rem;
+    }
+
+    /* ================= NAVBAR SUPERIOR ================= */
+    .navbar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-name {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .shift-badge {
+      background: var(--cream-badge);
+      color: var(--brown-dark);
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 5px 12px;
+      border-radius: 999px;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-item {
+      background: var(--bg-soft);
+      color: var(--brown-dark);
+      border: none;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .nav-item.active {
+      background: var(--brown-dark);
+      color: #fff;
+    }
+
+    /* ================= CONTENEDOR PRINCIPAL ================= */
+    .container {
+      max-width: 1120px;
+      margin: 24px auto;
+      padding: 0 20px 40px;
+    }
+
+    /* ================= VISTA 2: INVENTARIO PRINCIPAL ================= */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      padding: 9px 14px;
+      border: 1.5px solid #8c7b6b;
+      border-radius: 8px;
+      min-width: 210px;
+      background: #fff;
+    }
+
+    .filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill-btn {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--brown-dark);
+      background: #fff;
+      color: var(--brown-dark);
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+    }
+
+    .pill-btn.active {
+      background: var(--brown-dark);
+      color: #fff;
+    }
+
+    .view-toggle {
+      display: inline-flex;
+      border: 1.5px solid var(--blue-btn);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .toggle-btn {
+      border: none;
+      background: transparent;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--blue-btn);
+      cursor: pointer;
+    }
+
+    .toggle-btn.active {
+      background: var(--blue-btn);
+      color: #fff;
+    }
+
+    .product-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .product-list.grid-mode {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 16px;
+    }
+
+    .product-row {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(59, 35, 20, 0.04);
+    }
+
+    .product-info {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 210px;
+    }
+
+    .product-thumb {
+      width: 58px;
+      height: 58px;
+      border-radius: 8px;
+      object-fit: cover;
+      background: var(--bg-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .product-name {
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    .product-cat {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+
+    .product-controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .price-tag {
+      font-weight: 800;
+      color: var(--green-btn);
+      font-size: 1rem;
+      min-width: 72px;
+    }
+
+    .stepper {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .step-minus {
+      background: var(--red-btn);
+    }
+
+    .step-plus {
+      background: var(--green-btn);
+    }
+
+    .stock-box {
+      text-align: center;
+      min-width: 64px;
+    }
+
+    .stock-num {
+      font-size: 1.2rem;
+      font-weight: 800;
+      display: block;
+    }
+
+    .stock-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .bottom-actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    /* ================= VISTA 3: AGREGAR / EDITAR PRODUCTO ================= */
+    .form-card {
+      background: #fff;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 28px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .image-picker-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .upload-box {
+      width: 96px;
+      height: 76px;
+      border: 2px dashed var(--blue-btn);
+      border-radius: 10px;
+      background: #f4f9ff;
+      color: var(--blue-btn);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .preset-card {
+      width: 78px;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      background: var(--bg-soft);
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding-bottom: 4px;
+    }
+
+    .preset-card.selected {
+      border-color: var(--brown-dark);
+    }
+
+    .preset-emoji {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    /* ================= VISTA 4: HISTORIAL DEVOLUCIONES Y DONACIONES ================= */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .table-card {
+      background: #fff;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      box-shadow: var(--shadow);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+
+    thead th {
+      background: var(--brown-dark);
+      color: #fff;
+      text-align: left;
+      padding: 13px 16px;
+      font-size: 0.9rem;
+    }
+
+    tbody td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #eee6d8;
+      font-size: 0.92rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .badge-donacion {
+      background: #e8f5e9;
+      color: var(--green-btn);
+      border: 1px solid var(--green-btn);
+    }
+
+    .badge-devolucion {
+      background: #e3f2fd;
+      color: var(--blue-btn);
+      border: 1px solid var(--blue-btn);
+    }
+
+    /* ================= VISTA 5: MODAL NUEVA INCIDENCIA ================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(34, 24, 17, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 50;
+    }
+
+    .modal-card {
+      background: #fff;
+      width: 100%;
+      max-width: 480px;
+      padding: 26px;
+      border-radius: 16px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .radio-pill {
+      flex: 1;
+      border: 1.5px solid var(--brown-dark);
+      border-radius: 999px;
+      padding: 8px 14px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .radio-pill.active-blue {
+      background: var(--blue-btn);
+      color: #fff;
+      border-color: var(--blue-btn);
+    }
+
+    .radio-pill.active-green {
+      background: var(--green-btn);
+      color: #fff;
+      border-color: var(--green-btn);
+    }
+
+    /* ================= VISTA 6: RESUMEN DE CIERRE ================= */
+    .meta-strip {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .meta-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .meta-value {
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .total-money {
+      color: var(--green-btn);
+      font-weight: 800;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--brown-dark);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: var(--shadow);
+      z-index: 100;
+    }
+
+    @media (max-width: 680px) {
+      .grid-2, .meta-strip {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media print {
+      .navbar, .bottom-actions, .toast {
+        display: none !important;
+      }
+      body {
+        background: #fff;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= 1. INICIO DE SESIÓN Y REGISTRO ================= -->
+  <section id="view-auth" class="auth-wrapper">
+    <div class="auth-card">
+      <h1 class="auth-title">Panadería La Lucha</h1>
+      <p class="auth-subtitle">Bienvenido al control de la panadería</p>
+
+      <div class="auth-tabs">
+        <button id="tab-login" class="tab-btn active" onclick="switchAuthTab('login')">Iniciar Sesión</button>
+        <button id="tab-register" class="tab-btn" onclick="switchAuthTab('register')">Registrar Usuario</button>
+      </div>
+
+      <!-- Formulario Iniciar Sesión -->
+      <form id="form-login" onsubmit="handleLogin(event)">
+        <h2 class="form-heading">Ingresa a tu cuenta</h2>
+        <div class="form-group">
+          <label for="login-email">Correo electrónico</label>
+          <input id="login-email" type="email" class="form-control" placeholder="Ej. nombre@correo.com" value="margarita@lalucha.pe" required />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Contraseña</label>
+          <input id="login-password" type="password" class="form-control" placeholder="Escribe tu contraseña" value="123456" required />
+        </div>
+        <label class="checkbox-row">
+          <input type="checkbox" id="toggle-pass-login" onchange="togglePassword('login-password', this.checked)" />
+          Mostrar contraseña
+        </label>
+        <button type="submit" class="btn btn-green btn-block">Iniciar Sesión</button>
+      </form>
+
+      <!-- Formulario Registrar Usuario -->
+      <form id="form-register" class="hidden" onsubmit="handleRegister(event)">
+        <h2 class="form-heading">Crear cuenta de personal</h2>
+        <div class="form-group">
+          <label for="reg-name">Nombre completo</label>
+          <input id="reg-name" type="text" class="form-control" placeholder="Ej. Margarita" required />
+        </div>
+        <div class="form-group">
+          <label for="reg-email">Correo electrónico</label>
+          <input id="reg-email" type="email" class="form-control" placeholder="Ej. margarita@lalucha.pe" required />
+        </div>
+        <div class="form-group">
+          <label for="reg-role">Rol en tienda</label>
+          <select id="reg-role" class="form-control">
+            <option value="Vendedora">Vendedora</option>
+            <option value="Administrador">Administrador</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Contraseña</label>
+          <input id="reg-password" type="password" class="form-control" placeholder="Crea una contraseña" required />
+        </div>
+        <button type="submit" class="btn btn-green btn-block">Registrar y Entrar</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ================= APP PRINCIPAL (VISTAS 2 A 6) ================= -->
+  <div id="app-shell" class="hidden">
+    <header class="navbar">
+      <div class="brand-group">
+        <span class="brand-name">Panadería La Lucha</span>
+        <span class="shift-badge" id="shift-badge" onclick="cycleShift()" style="cursor:pointer" title="Clic para cambiar turno">☀️ Turno Mañana</span>
+      </div>
+      <nav class="nav-links">
+        <button id="nav-inventario" class="nav-item active" onclick="navigateTo('inventario')">Inventario Principal</button>
+        <button id="nav-historial" class="nav-item" onclick="navigateTo('historial')">Devoluciones y Donaciones</button>
+        <button id="nav-cierre" class="nav-item" onclick="navigateTo('cierre')">Resumen de Cierre</button>
+        <button class="btn-outline-dark" onclick="logout()">Cerrar Sesión</button>
+      </nav>
+    </header>
+
+    <main class="container">
+
+      <!-- ================= 2. INVENTARIO PRINCIPAL ================= -->
+      <section id="view-inventario">
+        <div class="toolbar">
+          <input id="search-input" type="text" class="search-input" placeholder="🔍 Buscar producto..." oninput="renderInventory()" />
+
+          <div class="filter-pills">
+            <button class="pill-btn active" data-cat="Todos" onclick="setCategory('Todos', this)">Todos</button>
+            <button class="pill-btn" data-cat="Panes" onclick="setCategory('Panes', this)">Panes</button>
+            <button class="pill-btn" data-cat="Tortas" onclick="setCategory('Tortas', this)">Tortas</button>
+            <button class="pill-btn" data-cat="Bebidas" onclick="setCategory('Bebidas', this)">Bebidas</button>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div class="view-toggle">
+              <button id="btn-grid" class="toggle-btn" onclick="setViewMode('grid')">⊞ Vista de Cuadrícula</button>
+              <button id="btn-list" class="toggle-btn active" onclick="setViewMode('list')">☰ Vista de Lista</button>
+            </div>
+            <button class="btn btn-blue" onclick="openProductForm(null)">+ Agregar Nuevo Producto</button>
+            <button class="btn-outline-blue" onclick="showToast('Usa - / + para ajustar stock o Editar para modificar datos.')" title="Ayuda">?</button>
+          </div>
+        </div>
+
+        <div id="inventory-container" class="product-list"></div>
+
+        <div class="bottom-actions">
+          <button class="btn btn-blue" onclick="saveInitialInventory()">Guardar Inventario Inicial</button>
+          <button class="btn btn-green" onclick="goToClosing()">Guardar Cierre de Turno</button>
+        </div>
+      </section>
+
+      <!-- ================= 3. AGREGAR / EDITAR PRODUCTO ================= -->
+      <section id="view-producto" class="hidden">
+        <div class="form-card">
+          <h2 id="product-form-title" class="form-heading" style="font-size:1.35rem; margin-bottom:20px;">Agregar / Editar Producto</h2>
+
+          <form id="form-product" onsubmit="handleSaveProduct(event)">
+            <input type="hidden" id="prod-id" />
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="prod-name">Nombre del Producto</label>
+                <input id="prod-name" type="text" class="form-control" placeholder="Ej. Pan Francés" required />
+              </div>
+              <div class="form-group">
+                <label for="prod-category">Categoría</label>
+                <select id="prod-category" class="form-control">
+                  <option value="Panes">Panes</option>
+                  <option value="Tortas">Tortas</option>
+                  <option value="Bebidas">Bebidas</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label for="prod-price">Precio Unitario (S/.)</label>
+                <input id="prod-price" type="number" step="0.10" min="0" class="form-control" placeholder="0.00" required />
+              </div>
+              <div class="form-group">
+                <label for="prod-stock">Cantidad Inicial</label>
+                <div class="stepper" style="margin-top:4px;">
+                  <button type="button" class="step-btn step-minus" onclick="adjustFormStock(-1)">-</button>
+                  <input id="prod-stock" type="number" min="0" class="form-control" style="width:84px; text-align:center; font-weight:700;" value="0" required />
+                  <button type="button" class="step-btn step-plus" onclick="adjustFormStock(1)">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Imagen del Producto (Opcional)</label>
+              <div class="image-picker-row">
+                <label class="upload-box" for="prod-file">
+                  <span>⬆</span>
+                  <span>Subir foto</span>
+                  <input id="prod-file" type="file" accept="image/*" class="hidden" onchange="handleCustomImage(event)" />
+                </label>
+
+                <div class="preset-card selected" data-emoji="🥖" onclick="selectPreset('🥖', this)">
+                  <div class="preset-emoji">🥖</div>
+                  <span>Pan</span>
+                </div>
+                <div class="preset-card" data-emoji="🥐" onclick="selectPreset('🥐', this)">
+                  <div class="preset-emoji">🥐</div>
+                  <span>Empanada</span>
+                </div>
+                <div class="preset-card" data-emoji="🎂" onclick="selectPreset('🎂', this)">
+                  <div class="preset-emoji">🎂</div>
+                  <span>Torta</span>
+                </div>
+                <div class="preset-card" data-emoji="☕" onclick="selectPreset('☕', this)">
+                  <div class="preset-emoji">☕</div>
+                  <span>Bebida</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" id="btn-delete-product" class="btn btn-red hidden" onclick="deleteCurrentProduct()">Eliminar Producto</button>
+              <div style="display:flex; gap:10px; margin-left:auto;">
+                <button type="button" class="btn btn-gray" onclick="navigateTo('inventario')">Cancelar</button>
+                <button type="submit" class="btn btn-green">Guardar Producto</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ================= 4. HISTORIAL DE DEVOLUCIONES Y DONACIONES ================= -->
+      <section id="view-historial" class="hidden">
+        <div class="section-header">
+          <div>
+            <h2 style="font-size:1.4rem; font-weight:800;">Historial de Devoluciones y Donaciones</h2>
+            <p style="color:var(--text-muted); font-size:0.9rem; margin-top:4px;">🕒 Fecha: 17/11/2026</p>
+          </div>
+          <button class="btn btn-green" onclick="openIncidenceModal()">+ Registrar Nueva Incidencia</button>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha y Hora</th>
+                <th>Producto</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Breve Descripción</th>
+              </tr>
+            </thead>
+            <tbody id="incidents-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= 6. RESUMEN DE CIERRE ================= -->
+      <section id="view-cierre" class="hidden">
+        <div class="section-header">
+          <h2 id="closing-title" style="font-size:1.4rem; font-weight:800;">Resumen de Cierre - Turno Mañana</h2>
+        </div>
+
+        <div class="meta-strip">
+          <div>
+            <div class="meta-label">Usuario responsable</div>
+            <div class="meta-value" id="closing-user">Margarita (Vendedora)</div>
+          </div>
+          <div>
+            <div class="meta-label">Fecha</div>
+            <div class="meta-value">17/11/2026</div>
+          </div>
+          <div>
+            <div class="meta-label">Tienda</div>
+            <div class="meta-value">Panadería La Lucha</div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Inventario Inicial</th>
+                <th>Ingreso de Productos (Turno)</th>
+                <th>Total (Inicial + Turno)</th>
+                <th>Venta Especificada</th>
+                <th>Venta Total</th>
+                <th>Inventario Final</th>
+              </tr>
+            </thead>
+            <tbody id="closing-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="bottom-actions">
+          <button class="btn btn-blue" onclick="window.print()">Imprimir / Exportar Reporte</button>
+          <button class="btn-outline-dark" onclick="logout()">Cerrar Sesión</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ================= 5. MODAL: REGISTRAR NUEVA INCIDENCIA ================= -->
+  <div id="modal-incidencia" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <h2 class="form-heading" style="font-size:1.3rem; margin-bottom:18px;">Registrar Nueva Incidencia</h2>
+
+      <form id="form-incidencia" onsubmit="handleSaveIncidence(event)">
+        <div class="form-group">
+          <label for="inc-product">Seleccionar Producto</label>
+          <select id="inc-product" class="form-control" required></select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label>Cantidad</label>
+            <div class="stepper" style="margin-top:4px;">
+              <button type="button" class="step-btn step-minus" onclick="adjustIncQty(-1)">-</button>
+              <input id="inc-qty" type="number" min="1" class="form-control" style="width:74px; text-align:center; font-weight:700;" value="1" required />
+              <button type="button" class="step-btn step-plus" onclick="adjustIncQty(1)">+</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Tipo de incidencia</label>
+            <div class="radio-group">
+              <button type="button" id="radio-dev" class="radio-pill active-blue" onclick="setIncType('Devolución')">Devolución</button>
+              <button type="button" id="radio-don" class="radio-pill" onclick="setIncType('Donación')">Donación</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="inc-desc">Breve descripción</label>
+          <input id="inc-desc" type="text" class="form-control" placeholder="Ej. Entregado al comedor del barrio" required />
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+          <button type="button" class="btn btn-gray" onclick="closeIncidenceModal()">Cancelar</button>
+          <button type="submit" class="btn btn-green">Guardar Incidencia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    let currentUser = "Margarita (Vendedora)";
+    let currentShift = "Turno Mañana";
+    let selectedCategory = "Todos";
+    let viewMode = "list";
+    let selectedEmoji = "🥖";
+    let customImageData = null;
+    let incType = "Devolución";
+
+    let products = [
+      { id: 1, name: "Café Americano", category: "Bebidas", price: 4.00, initialStock: 25, addedStock: 0, stock: 25, sold: 6, icon: "☕" },
+      { id: 2, name: "Croissant", category: "Panes", price: 2.50, initialStock: 20, addedStock: 12, stock: 32, sold: 8, icon: "🥐" },
+      { id: 3, name: "Empanada de Carne", category: "Panes", price: 3.50, initialStock: 25, addedStock: 15, stock: 40, sold: 11, icon: "🥐" },
+      { id: 4, name: "Empanada de Pollo", category: "Panes", price: 3.50, initialStock: 20, addedStock: 8, stock: 28, sold: 7, icon: "🥐" },
+      { id: 5, name: "Jugo de Naranja", category: "Bebidas", price: 6.00, initialStock: 18, addedStock: 0, stock: 18, sold: 5, icon: "🍹" },
+      { id: 6, name: "Torta de Chocolate", category: "Tortas", price: 45.00, initialStock: 6, addedStock: 2, stock: 8, sold: 2, icon: "🎂" }
+    ];
+
+    let incidents = [
+      { date: "17/11/2026 15:42", product: "Pan Francés", type: "Donación", qty: 12, desc: "Entregado al comedor del barrio" },
+      { date: "17/11/2026 13:10", product: "Torta de Chocolate", type: "Devolución", qty: 1, desc: "Cliente la pidió con otro relleno" },
+      { date: "17/11/2026 11:25", product: "Empanada de Carne", type: "Devolución", qty: 3, desc: "Llegaron frías del reparto" },
+      { date: "16/11/2026 18:05", product: "Croissant", type: "Donación", qty: 8, desc: "Sobrante del día para el asilo" },
+      { date: "16/11/2026 10:30", product: "Torta Tres Leches", type: "Devolución", qty: 1, desc: "Caja dañada en el transporte" }
+    ];
+
+    function showToast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.remove("hidden");
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => el.classList.add("hidden"), 2600);
+    }
+
+    function switchAuthTab(tab) {
+      const isLogin = tab === "login";
+      document.getElementById("tab-login").classList.toggle("active", isLogin);
+      document.getElementById("tab-register").classList.toggle("active", !isLogin);
+      document.getElementById("form-login").classList.toggle("hidden", !isLogin);
+      document.getElementById("form-register").classList.toggle("hidden", isLogin);
+    }
+
+    function togglePassword(inputId, show) {
+      document.getElementById(inputId).type = show ? "text" : "password";
+    }
+
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value.trim();
+      currentUser = email ? email.split("@")[0] : "Margarita";
+      enterApp();
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      const name = document.getElementById("reg-name").value.trim();
+      const role = document.getElementById("reg-role").value;
+      currentUser = `${name} (${role})`;
+      showToast(`Usuario registrado: ${currentUser}`);
+      enterApp();
+    }
+
+    function enterApp() {
+      document.getElementById("view-auth").classList.add("hidden");
+      document.getElementById("app-shell").classList.remove("hidden");
+      document.getElementById("closing-user").textContent = currentUser;
+      navigateTo("inventario");
+    }
+
+    function logout() {
+      document.getElementById("app-shell").classList.add("hidden");
+      document.getElementById("view-auth").classList.remove("hidden");
+    }
+
+    function cycleShift() {
+      currentShift = currentShift === "Turno Mañana" ? "Turno Tarde" : "Turno Mañana";
+      const icon = currentShift === "Turno Mañana" ? "☀️" : "🌤️";
+      document.getElementById("shift-badge").textContent = `${icon} ${currentShift}`;
+      document.getElementById("closing-title").textContent = `Resumen de Cierre - ${currentShift}`;
+      showToast(`Cambiado a ${currentShift}`);
+    }
+
+    function navigateTo(viewName) {
+      ["inventario", "producto", "historial", "cierre"].forEach((v) => {
+        document.getElementById(`view-${v}`).classList.toggle("hidden", v !== viewName);
+      });
+      ["inventario", "historial", "cierre"].forEach((v) => {
+        const navBtn = document.getElementById(`nav-${v}`);
+        if (navBtn) navBtn.classList.toggle("active", v === viewName);
+      });
+
+      if (viewName === "inventario") renderInventory();
+      if (viewName === "historial") renderIncidents();
+      if (viewName === "cierre") renderClosing();
+    }
+
+    function setCategory(cat, btn) {
+      selectedCategory = cat;
+      document.querySelectorAll(".pill-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderInventory();
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      document.getElementById("btn-grid").classList.toggle("active", mode === "grid");
+      document.getElementById("btn-list").classList.toggle("active", mode === "list");
+      renderInventory();
+    }
+
+    function renderIcon(item) {
+      if (item.customImg) {
+        return `<img src="${item.customImg}" alt="${item.name}" class="product-thumb" />`;
+      }
+      return `<div class="product-thumb">${item.icon || "🥖"}</div>`;
+    }
+
+    function renderInventory() {
+      const query = document.getElementById("search-input").value.trim().toLowerCase();
+      const container = document.getElementById("inventory-container");
+      container.classList.toggle("grid-mode", viewMode === "grid");
+
+      const filtered = products.filter((p) => {
+        const matchCat = selectedCategory === "Todos" || p.category === selectedCategory;
+        const matchText = p.name.toLowerCase().includes(query);
+        return matchCat && matchText;
+      });
+
+      if (!filtered.length) {
+        container.innerHTML = `<div class="product-row"><p>No se encontraron productos con ese filtro.</p></div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map((p) => `
+        <div class="product-row">
+          <div class="product-info">
+            ${renderIcon(p)}
+            <div>
+              <div class="product-name">${p.name}</div>
+              <div class="product-cat">${p.category}</div>
+            </div>
+          </div>
+
+          <div class="product-controls">
+            <span class="price-tag">S/. ${p.price.toFixed(2)}</span>
+            <div class="stepper">
+              <button class="step-btn step-minus" onclick="changeStock(${p.id}, -1)">-</button>
+              <div class="stock-box">
+                <span class="stock-num">${p.stock}</span>
+                <span class="stock-label">en stock</span>
+              </div>
+              <button class="step-btn step-plus" onclick="changeStock(${p.id}, 1)">+</button>
+            </div>
+            <button class="btn-outline-blue" onclick="openProductForm(${p.id})">✏️ Editar</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function changeStock(id, delta) {
+      const prod = products.find((p) => p.id === id);
+      if (!prod) return;
+      if (prod.stock + delta < 0) return;
+      prod.stock += delta;
+      if (delta > 0) {
+        prod.addedStock += delta;
+      } else {
+        prod.sold += 1;
+      }
+      renderInventory();
+    }
+
+    function saveInitialInventory() {
+      products.forEach((p) => {
+        p.initialStock = p.stock;
+        p.addedStock = 0;
+        p.sold = 0;
+      });
+      showToast("Inventario inicial guardado para el turno.");
+    }
+
+    function goToClosing() {
+      showToast("Cierre de turno calculado.");
+      navigateTo("cierre");
+    }
+
+    function openProductForm(id) {
+      customImageData = null;
+      document.getElementById("form-product").reset();
+      document.querySelectorAll(".preset-card").forEach((c) => c.classList.remove("selected"));
+
+      if (id === null) {
+        document.getElementById("product-form-title").textContent = "Agregar Nuevo Producto";
+        document.getElementById("prod-id").value = "";
+        document.getElementById("prod-stock").value = 0;
+        document.getElementById("btn-delete-product").classList.add("hidden");
+        selectedEmoji = "🥖";
+        document.querySelector('.preset-card[data-emoji="🥖"]').classList.add("selected");
+      } else {
+        const prod = products.find((p) => p.id === id);
+        if (!prod) return;
+        document.getElementById("product-form-title").textContent = "Agregar / Editar Producto";
+        document.getElementById("prod-id").value = prod.id;
+        document.getElementById("prod-name").value = prod.name;
+        document.getElementById("prod-category").value = prod.category;
+        document.getElementById("prod-price").value = prod.price;
+        document.getElementById("prod-stock").value = prod.stock;
+        document.getElementById("btn-delete-product").classList.remove("hidden");
+        selectedEmoji = prod.icon || "🥖";
+        customImageData = prod.customImg || null;
+        const matchPreset = document.querySelector(`.preset-card[data-emoji="${selectedEmoji}"]`);
+        if (matchPreset && !customImageData) matchPreset.classList.add("selected");
+      }
+
+      navigateTo("producto");
+    }
+
+    function adjustFormStock(delta) {
+      const input = document.getElementById("prod-stock");
+      const nextVal = Math.max(0, (parseInt(input.value, 10) || 0) + delta);
+      input.value = nextVal;
+    }
+
+    function selectPreset(emoji, el) {
+      customImageData = null;
+      selectedEmoji = emoji;
+      document.querySelectorAll(".preset-card").forEach((c) => c.classList.remove("selected"));
+      el.classList.add("selected");
+    }
+
+    function handleCustomImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        customImageData = ev.target.result;
+        document.querySelectorAll(".preset-card").forEach((c) => c.classList.remove("selected"));
+        showToast("Imagen cargada.");
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleSaveProduct(e) {
+      e.preventDefault();
+      const idVal = document.getElementById("prod-id").value;
+      const name = document.getElementById("prod-name").value.trim();
+      const category = document.getElementById("prod-category").value;
+      const price = parseFloat(document.getElementById("prod-price").value) || 0;
+      const stock = Math.max(0, parseInt(document.getElementById("prod-stock").value, 10) || 0);
+
+      if (idVal) {
+        const prod = products.find((p) => p.id === parseInt(idVal, 10));
+        if (prod) {
+          prod.name = name;
+          prod.category = category;
+          prod.price = price;
+          prod.stock = stock;
+          prod.icon = selectedEmoji;
+          prod.customImg = customImageData;
+        }
+        showToast("Producto actualizado.");
+      } else {
+        const nextId = products.length ? Math.max(...products.map((p) => p.id)) + 1 : 1;
+        products.push({
+          id: nextId,
+          name,
+          category,
+          price,
+          initialStock: stock,
+          addedStock: 0,
+          stock,
+          sold: 0,
+          icon: selectedEmoji,
+          customImg: customImageData
+        });
+        showToast("Producto agregado al inventario.");
+      }
+      navigateTo("inventario");
+    }
+
+    function deleteCurrentProduct() {
+      const idVal = parseInt(document.getElementById("prod-id").value, 10);
+      products = products.filter((p) => p.id !== idVal);
+      showToast("Producto eliminado.");
+      navigateTo("inventario");
+    }
+
+    function renderIncidents() {
+      const tbody = document.getElementById("incidents-tbody");
+      tbody.innerHTML = incidents.map((inc) => {
+        const badgeClass = inc.type === "Donación" ? "badge-donacion" : "badge-devolucion";
+        return `
+          <tr>
+            <td>${inc.date}</td>
+            <td><strong>${inc.product}</strong></td>
+            <td><span class="badge ${badgeClass}">${inc.type}</span></td>
+            <td><strong>${inc.qty}</strong></td>
+            <td>${inc.desc}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function openIncidenceModal() {
+      const select = document.getElementById("inc-product");
+      select.innerHTML = products.map((p) => `<option value="${p.name}">${p.name}</option>`).join("") +
+        `<option value="Pan Francés">Pan Francés</option><option value="Torta Tres Leches">Torta Tres Leches</option>`;
+      document.getElementById("inc-qty").value = 1;
+      document.getElementById("inc-desc").value = "";
+      setIncType("Devolución");
+      document.getElementById("modal-incidencia").classList.remove("hidden");
+    }
+
+    function closeIncidenceModal() {
+      document.getElementById("modal-incidencia").classList.add("hidden");
+    }
+
+    function adjustIncQty(delta) {
+      const input = document.getElementById("inc-qty");
+      input.value = Math.max(1, (parseInt(input.value, 10) || 1) + delta);
+    }
+
+    function setIncType(type) {
+      incType = type;
+      document.getElementById("radio-dev").className = "radio-pill" + (type === "Devolución" ? " active-blue" : "");
+      document.getElementById("radio-don").className = "radio-pill" + (type === "Donación" ? " active-green" : "");
+    }
+
+    function handleSaveIncidence(e) {
+      e.preventDefault();
+      const product = document.getElementById("inc-product").value;
+      const qty = Math.max(1, parseInt(document.getElementById("inc-qty").value, 10) || 1);
+      const desc = document.getElementById("inc-desc").value.trim();
+      const now = new Date();
+      const pad = (n) => String(n).padStart(2, "0");
+      const stamp = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+
+      incidents.unshift({ date: stamp, product, type: incType, qty, desc });
+      const matchedProd = products.find((p) => p.name === product);
+      if (matchedProd) {
+        matchedProd.stock = Math.max(0, matchedProd.stock - qty);
+      }
+
+      closeIncidenceModal();
+      renderIncidents();
+      showToast(`${incType} registrada.`);
+    }
+
+    function renderClosing() {
+      const tbody = document.getElementById("closing-tbody");
+      tbody.innerHTML = products.map((p) => {
+        const totalUnits = p.initialStock + p.addedStock;
+        const saleTotal = (p.sold * p.price).toFixed(2);
+        return `
+          <tr>
+            <td><strong>${p.name}</strong></td>
+            <td>${p.initialStock} und.</td>
+            <td>${p.addedStock} und.</td>
+            <td><strong>${totalUnits} und.</strong></td>
+            <td>${p.sold} und. × S/. ${p.price.toFixed(2)}</td>
+            <td class="total-money">S/. ${saleTotal}</td>
+            <td><strong>${p.stock} und.</strong></td>
+          </tr>
+        `;
+      }).join("");
+    }
+  </script>
+</body>
+</html>
