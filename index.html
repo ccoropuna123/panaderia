@@ -422,7 +422,7 @@
     .product-controls {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       flex-wrap: wrap;
     }
 
@@ -436,7 +436,7 @@
     .stepper {
       display: inline-flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .step-btn {
@@ -837,7 +837,7 @@
               <button id="btn-list" class="toggle-btn active" onclick="setViewMode('list')">☰ Lista</button>
             </div>
             <button class="btn btn-blue" onclick="openProductForm(null)">+ Agregar Producto</button>
-            <button class="btn-outline-blue" onclick="showToast('Usa + para ingresos del turno y - para restas rápidas. Al cerrar el turno, digita las unidades vendidas en Resumen de Cierre.')" title="Ayuda">?</button>
+            <button class="btn-outline-blue" onclick="showToast('Usa + para ingresar stock al turno y - para restar. En Resumen de Cierre digita las vendidas.')" title="Ayuda">?</button>
           </div>
         </div>
 
@@ -958,7 +958,7 @@
         <div class="section-header">
           <div>
             <h2 id="closing-title" style="font-size:1.4rem; font-weight:800;">Resumen de Cierre - Turno Mañana</h2>
-            <p style="color:var(--text-muted); font-size:0.88rem; margin-top:4px;">Escribe las unidades vendidas del turno en cada fila para calcular venta y stock final al instante.</p>
+            <p style="color:var(--text-muted); font-size:0.88rem; margin-top:4px;">Escribe las unidades vendidas del turno y luego pulsa Imprimir / Guardar PDF.</p>
           </div>
         </div>
 
@@ -1000,7 +1000,6 @@
         </div>
 
         <div class="bottom-actions">
-          <button class="btn btn-green" onclick="applyClosingStock()">Aplicar Stock Final al Inventario</button>
           <button class="btn btn-blue" onclick="window.print()">Imprimir / Guardar PDF</button>
           <button class="btn-outline-dark" onclick="navigateTo('inventario')">Volver al Inventario</button>
         </div>
@@ -1055,22 +1054,28 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    const STORAGE_KEY = "panaderia_la_lucha_state_v3";
+    const STORAGE_KEY = "panaderia_la_lucha_state_v4";
 
-    const DEFAULT_PRODUCTS = [
-      { id: 1, name: "Café Americano", category: "Bebidas", price: 4.00, initialStock: 25, addedStock: 0, incidentQty: 0, stock: 25, sold: 0, icon: "☕" },
-      { id: 2, name: "Croissant", category: "Panes", price: 2.50, initialStock: 20, addedStock: 12, incidentQty: 4, stock: 28, sold: 0, icon: "🥐" },
-      { id: 3, name: "Empanada de Carne", category: "Panes", price: 3.50, initialStock: 25, addedStock: 15, incidentQty: 2, stock: 38, sold: 0, icon: "🥐" },
-      { id: 4, name: "Empanada de Pollo", category: "Panes", price: 3.50, initialStock: 20, addedStock: 8, incidentQty: 0, stock: 28, sold: 0, icon: "🥐" },
-      { id: 5, name: "Jugo de Naranja", category: "Bebidas", price: 6.00, initialStock: 18, addedStock: 0, incidentQty: 0, stock: 18, sold: 0, icon: "🍹" },
-      { id: 6, name: "Torta de Chocolate", category: "Tortas", price: 45.00, initialStock: 6, addedStock: 2, incidentQty: 1, stock: 7, sold: 0, icon: "🎂" }
+    const BASE_PRODUCTS = [
+      { id: 1, name: "Café Americano", category: "Bebidas", price: 4.00, icon: "☕" },
+      { id: 2, name: "Croissant", category: "Panes", price: 2.50, icon: "🥐" },
+      { id: 3, name: "Empanada de Carne", category: "Panes", price: 3.50, icon: "🥐" },
+      { id: 4, name: "Empanada de Pollo", category: "Panes", price: 3.50, icon: "🥐" },
+      { id: 5, name: "Jugo de Naranja", category: "Bebidas", price: 6.00, icon: "🍹" },
+      { id: 6, name: "Torta de Chocolate", category: "Tortas", price: 45.00, icon: "🎂" }
     ];
 
-    const DEFAULT_INCIDENTS = [
-      { date: "17/11/2026 15:42", product: "Croissant", type: "Donación", qty: 4, desc: "Entregado al comedor del barrio" },
-      { date: "17/11/2026 13:10", product: "Torta de Chocolate", type: "Devolución", qty: 1, desc: "Cliente la pidió con otro relleno" },
-      { date: "17/11/2026 11:25", product: "Empanada de Carne", type: "Devolución", qty: 2, desc: "Llegaron frías del reparto" }
-    ];
+    function createZeroProducts() {
+      return BASE_PRODUCTS.map((item) => ({
+        ...item,
+        initialStock: 0,
+        addedStock: 0,
+        incidentQty: 0,
+        stock: 0,
+        sold: 0,
+        customImg: null
+      }));
+    }
 
     let currentUser = "Margarita (Vendedora)";
     let currentShift = "Turno Mañana";
@@ -1097,18 +1102,18 @@
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) {
-          products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-          incidents = JSON.parse(JSON.stringify(DEFAULT_INCIDENTS));
+          products = createZeroProducts();
+          incidents = [];
           return;
         }
         const parsed = JSON.parse(raw);
         currentUser = parsed.currentUser || "Margarita (Vendedora)";
         currentShift = parsed.currentShift || "Turno Mañana";
-        products = Array.isArray(parsed.products) ? parsed.products : JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-        incidents = Array.isArray(parsed.incidents) ? parsed.incidents : JSON.parse(JSON.stringify(DEFAULT_INCIDENTS));
+        products = Array.isArray(parsed.products) ? parsed.products : createZeroProducts();
+        incidents = Array.isArray(parsed.incidents) ? parsed.incidents : [];
       } catch (err) {
-        products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-        incidents = JSON.parse(JSON.stringify(DEFAULT_INCIDENTS));
+        products = createZeroProducts();
+        incidents = [];
       }
     }
 
@@ -1116,13 +1121,13 @@
       localStorage.removeItem(STORAGE_KEY);
       currentUser = "Margarita (Vendedora)";
       currentShift = "Turno Mañana";
-      products = JSON.parse(JSON.stringify(DEFAULT_PRODUCTS));
-      incidents = JSON.parse(JSON.stringify(DEFAULT_INCIDENTS));
+      products = createZeroProducts();
+      incidents = [];
       document.getElementById("closing-user").textContent = currentUser;
       const icon = currentShift === "Turno Mañana" ? "☀️" : "🌤️";
       document.getElementById("shift-badge").textContent = `${icon} ${currentShift}`;
       renderInventory();
-      showToast("Datos de demostración reiniciados.");
+      showToast("Demo reiniciada con stock en 0.");
     }
 
     function showToast(msg) {
@@ -1130,7 +1135,7 @@
       el.textContent = msg;
       el.classList.remove("hidden");
       clearTimeout(window.toastTimer);
-      window.toastTimer = setTimeout(() => el.classList.add("hidden"), 2600);
+      window.toastTimer = setTimeout(() => el.classList.add("hidden"), 2500);
     }
 
     function switchAuthTab(tab) {
@@ -1277,8 +1282,6 @@
       prod.stock += delta;
       if (delta > 0) {
         prod.addedStock = (prod.addedStock || 0) + delta;
-      } else {
-        prod.sold = (prod.sold || 0) + 1;
       }
 
       saveState();
@@ -1293,12 +1296,11 @@
         p.sold = 0;
       });
       saveState();
-      showToast("Inventario inicial guardado para el turno.");
+      showToast("Inventario inicial guardado.");
     }
 
     function goToClosing() {
       saveState();
-      showToast("Resumen de cierre listo para ingresar ventas.");
       navigateTo("cierre");
     }
 
@@ -1335,8 +1337,7 @@
 
     function adjustFormStock(delta) {
       const input = document.getElementById("prod-stock");
-      const nextVal = Math.max(0, (parseInt(input.value, 10) || 0) + delta);
-      input.value = nextVal;
+      input.value = Math.max(0, (parseInt(input.value, 10) || 0) + delta);
     }
 
     function selectPreset(emoji, el) {
@@ -1395,7 +1396,7 @@
           icon: selectedEmoji,
           customImg: customImageData
         });
-        showToast("Producto agregado al inventario.");
+        showToast("Producto agregado.");
       }
       saveState();
       navigateTo("inventario");
@@ -1500,12 +1501,6 @@
 
       saveState();
       renderClosing();
-    }
-
-    function applyClosingStock() {
-      saveState();
-      showToast("Ventas y stock final guardados.");
-      navigateTo("inventario");
     }
 
     function renderClosing() {
